@@ -1,0 +1,6 @@
+mouse_scroll_speed: 1
+
+# mprocs configuration for Kalshi Search Service
+# See: https://github.com/pvolok/mprocs
+
+procs: {}

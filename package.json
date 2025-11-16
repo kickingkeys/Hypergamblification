@@ -1,0 +1,24 @@
+{
+  "name": "hypergamblification",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kalshi prediction markets monorepo",
+  "scripts": {
+    "dev": "pnpm --filter kalshi-search-service dev",
+    "test": "pnpm --filter kalshi-search-service test",
+    "lint": "pnpm --filter kalshi-search-service lint",
+    "format": "pnpm --filter kalshi-search-service format"
+  },
+  "keywords": [
+    "kalshi",
+    "prediction-markets",
+    "search",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

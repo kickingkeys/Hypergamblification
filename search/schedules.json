@@ -1,0 +1,60 @@
+{
+  "schedules": [
+    {
+      "name": "sync-kalshi-markets",
+      "schedule": "*/5 * * * *",
+      "app": "kalshi-search-indexer",
+      "image": "registry.fly.io/kalshi-search-indexer:latest",
+      "env": {
+        "TASK_TYPE": "sync_markets"
+      },
+      "guest": {
+        "cpu_kind": "shared",
+        "cpus": 1,
+        "memory_mb": 512
+      }
+    },
+    {
+      "name": "sync-kalshi-events",
+      "schedule": "*/15 * * * *",
+      "app": "kalshi-search-indexer",
+      "image": "registry.fly.io/kalshi-search-indexer:latest",
+      "env": {
+        "TASK_TYPE": "sync_events"
+      },
+      "guest": {
+        "cpu_kind": "shared",
+        "cpus": 1,
+        "memory_mb": 512
+      }
+    },
+    {
+      "name": "sync-kalshi-series",
+      "schedule": "0 */6 * * *",
+      "app": "kalshi-search-indexer",
+      "image": "registry.fly.io/kalshi-search-indexer:latest",
+      "env": {
+        "TASK_TYPE": "sync_series"
+      },
+      "guest": {
+        "cpu_kind": "shared",
+        "cpus": 1,
+        "memory_mb": 512
+      }
+    },
+    {
+      "name": "sync-kalshi-full",
+      "schedule": "0 3 * * *",
+      "app": "kalshi-search-indexer",
+      "image": "registry.fly.io/kalshi-search-indexer:latest",
+      "env": {
+        "TASK_TYPE": "sync_all"
+      },
+      "guest": {
+        "cpu_kind": "shared",
+        "cpus": 1,
+        "memory_mb": 512
+      }
+    }
+  ]
+}

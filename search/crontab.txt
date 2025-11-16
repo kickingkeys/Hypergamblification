@@ -1,0 +1,14 @@
+# Kalshi indexer cron schedule
+# Uses supercronic for container-friendly cron
+
+# Sync markets every 5 minutes
+*/5 * * * * cd /app && TASK_TYPE=sync_markets tsx src/indexer/index.ts
+
+# Sync events every 15 minutes
+*/15 * * * * cd /app && TASK_TYPE=sync_events tsx src/indexer/index.ts
+
+# Sync series every 6 hours
+0 */6 * * * cd /app && TASK_TYPE=sync_series tsx src/indexer/index.ts
+
+# Full sync of all resources daily at 3 AM
+0 3 * * * cd /app && TASK_TYPE=sync_all tsx src/indexer/index.ts

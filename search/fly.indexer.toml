@@ -1,0 +1,17 @@
+# Fly.io configuration for Kalshi Search Indexer
+
+app = "kalshi-search-indexer"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+
+# No HTTP service for indexer (runs as ephemeral machines via Cron Manager)
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1

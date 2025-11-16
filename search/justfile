@@ -1,0 +1,324 @@
+# Kalshi Search Service - Development Commands
+# https://github.com/casey/just
+
+# List all available commands
+default:
+    @just --list
+
+# Install dependencies
+install:
+    pnpm install
+
+# Setup WireGuard VPN (one-time)
+setup-wireguard:
+    #!/bin/bash
+    echo "🔧 Setting up WireGuard VPN for database access..."
+    echo ""
+    echo "When prompted:"
+    echo "  1. Select your organization (use arrow keys)"
+    echo "  2. For filename, type: stdout"
+    echo "  3. Ignore the output - it's just informational!"
+    echo ""
+    echo "The flyctl agent will handle everything automatically."
+    echo ""
+    flyctl wireguard create
+    echo ""
+    echo "✅ WireGuard peer created!"
+    echo ""
+    echo "Next step: just proxy (to test the connection)"
+
+# ============================================================================
+# Development
+# ============================================================================
+
+# Verify Kalshi API data size and characteristics (run this first!)
+verify:
+    @echo "🔍 Verifying Kalshi API data size and performance..."
+    @echo "This will help determine if we need PostgreSQL or can use in-memory caching"
+    @echo ""
+    pnpm run verify
+
+# Start development server with mprocs (database proxy + API + type checking)
+dev:
+    ./dev.sh
+
+# Start development server with indexer for testing
+dev-indexer:
+    ./dev.sh --run-indexer
+
+# Start only the database proxy
+proxy:
+    pnpm run proxy:db
+
+# Start only the API server
+api:
+    pnpm run dev:api
+
+# Run TypeScript type checking
+typecheck:
+    @echo "🔍 Running TypeScript type checking..."
+    pnpm exec tsc --noEmit
+
+# Run TypeScript type checking in watch mode
+typecheck-watch:
+    pnpm exec tsc --noEmit --watch
+
+# Check code quality (lint + typecheck)
+check:
+    @echo "🔎 Running code quality checks..."
+    @echo ""
+    @echo "1️⃣  Linting TypeScript code..."
+    @pnpm exec eslint src --ext .ts
+    @echo ""
+    @echo "2️⃣  Type checking..."
+    @pnpm exec tsc --noEmit
+    @echo ""
+    @echo "✅ All checks passed!"
+
+# Check and fix what can be auto-fixed
+check-fix:
+    @echo "🔧 Running code quality checks with auto-fix..."
+    @echo ""
+    @echo "1️⃣  Linting and fixing..."
+    @pnpm exec eslint src --ext .ts --fix
+    @echo ""
+    @echo "2️⃣  Formatting code..."
+    @pnpm exec prettier --write "src/**/*.ts"
+    @echo ""
+    @echo "3️⃣  Type checking..."
+    @pnpm exec tsc --noEmit
+    @echo ""
+    @echo "✅ All checks passed and fixes applied!"
+
+# ============================================================================
+# Database
+# ============================================================================
+
+# Run database migrations
+migrate:
+    pnpm run migrate:latest
+
+# Rollback last migration
+migrate-down:
+    tsx src/database/migrate.ts down
+
+# ============================================================================
+# Data Sync
+# ============================================================================
+
+# Sync all resources from Kalshi API
+sync-all:
+    pnpm run sync:all
+
+# Sync markets from Kalshi API
+sync-markets:
+    pnpm run sync:markets
+
+# Sync events from Kalshi API
+sync-events:
+    pnpm run sync:events
+
+# Sync series from Kalshi API
+sync-series:
+    pnpm run sync:series
+
+# Run a full sync of all resources
+sync-full:
+    TASK_TYPE=sync_all tsx src/indexer/index.ts
+
+# ============================================================================
+# Deployment
+# ============================================================================
+
+# Deploy API to Fly.io
+deploy-api:
+    flyctl deploy --config fly.toml --app kalshi-search-api
+
+# Deploy indexer to Fly.io
+deploy-indexer:
+    flyctl deploy --config fly.indexer.toml --app kalshi-search-indexer
+
+# Deploy both API and indexer
+deploy-all: deploy-api deploy-indexer
+
+# ============================================================================
+# Fly.io Management
+# ============================================================================
+
+# View API logs
+logs-api:
+    flyctl logs --app kalshi-search-api
+
+# View indexer logs
+logs-indexer:
+    flyctl logs --app kalshi-search-indexer
+
+# View database logs
+logs-db:
+    flyctl logs --app kalshi-search-db
+
+# Check API status
+status-api:
+    flyctl status --app kalshi-search-api
+
+# Check indexer status
+status-indexer:
+    flyctl status --app kalshi-search-indexer
+
+# Check database status
+status-db:
+    flyctl status --app kalshi-search-db
+
+# Scale API horizontally (example: just scale-api 3)
+scale-api count:
+    flyctl scale count {{count}} --app kalshi-search-api
+
+# SSH into API machine
+ssh-api:
+    flyctl ssh console --app kalshi-search-api
+
+# SSH into database
+ssh-db:
+    flyctl ssh console --app kalshi-search-db
+
+# ============================================================================
+# Testing
+# ============================================================================
+
+# Run tests
+test:
+    pnpm run test
+
+# Run tests with coverage
+test-coverage:
+    pnpm run test:coverage
+
+# Test API health endpoint (local)
+test-health:
+    curl http://localhost:3000/health | jq
+
+# Test market search endpoint (local)
+test-search-local query="election":
+    curl "http://localhost:3000/api/v1/markets/search?q={{query}}&limit=5" | jq
+
+# Test series endpoint (local)
+test-series:
+    curl "http://localhost:3000/api/v1/series?limit=10" | jq
+
+# ============================================================================
+# Production Testing (Fly.io)
+# ============================================================================
+
+# Test production health endpoint
+test-health-prod:
+    curl https://kalshi-search-api.fly.dev/health | jq
+
+# Test production search endpoint
+test-search query="election":
+    @echo "🔍 Searching for: {{query}}"
+    @echo ""
+    @curl -s "https://kalshi-search-api.fly.dev/api/v1/markets/search?q={{query}}&limit=5" | jq '.markets[] | {ticker, title, yes_price, volume, series: .series.title}'
+    @echo ""
+    @curl -s "https://kalshi-search-api.fly.dev/api/v1/markets/search?q={{query}}&limit=5" | jq '{total: .total, series_matched: .series_matched, timing: .timing}'
+
+# Test production search with full output
+test-search-full query="election":
+    curl -s "https://kalshi-search-api.fly.dev/api/v1/markets/search?q={{query}}&limit=10" | jq
+
+# Test production series endpoint
+test-series-prod limit="10":
+    curl -s "https://kalshi-search-api.fly.dev/api/v1/series" | jq '.series[:{{limit}}] | .[] | {ticker, title, category}'
+
+# ============================================================================
+# Database Management
+# ============================================================================
+
+# Connect to database via psql
+db-console:
+    flyctl postgres connect -a kalshi-search-db
+
+# Execute SQL query on database
+db-query query:
+    flyctl postgres connect -a kalshi-search-db -c "{{query}}"
+
+# Show all tables
+db-tables:
+    flyctl postgres connect -a kalshi-search-db -c "\dt"
+
+# Show table schema
+db-schema table:
+    flyctl postgres connect -a kalshi-search-db -c "\d {{table}}"
+
+# Count records in markets table
+db-count-markets:
+    flyctl postgres connect -a kalshi-search-db -c "SELECT COUNT(*) FROM markets;"
+
+# Show recent sync metadata
+db-sync-status:
+    flyctl postgres connect -a kalshi-search-db -c "SELECT * FROM sync_metadata ORDER BY last_sync_at DESC LIMIT 10;"
+
+# ============================================================================
+# Utilities
+# ============================================================================
+
+# Clean build artifacts and dependencies
+clean:
+    rm -rf node_modules dist .turbo
+
+# Clean and reinstall dependencies
+clean-install: clean install
+
+# Format code with prettier
+format:
+    pnpm run format
+
+# Lint code
+lint:
+    pnpm run lint
+
+# Build TypeScript
+build:
+    pnpm run build
+
+# Show project statistics
+stats:
+    @echo "📊 Project Statistics"
+    @echo "===================="
+    @echo "TypeScript files: $(find src -name '*.ts' | wc -l)"
+    @echo "Total lines of code: $(find src -name '*.ts' -exec wc -l {} + | tail -1 | awk '{print $1}')"
+    @echo "Dependencies: $(cat package.json | jq '.dependencies | length')"
+    @echo "Dev dependencies: $(cat package.json | jq '.devDependencies | length')"
+
+# Show environment info
+env-info:
+    @echo "🔧 Environment Information"
+    @echo "========================="
+    @echo "Node version: $(node --version)"
+    @echo "pnpm version: $(pnpm --version)"
+    @echo "Flyctl version: $(flyctl version | head -1)"
+    @echo "Just version: $(just --version)"
+    @echo ""
+    @echo "Database URL: $(grep DATABASE_URL .env | cut -d '=' -f2-)"
+
+# ============================================================================
+# Setup Helpers
+# ============================================================================
+
+# Complete initial setup (run after clone)
+setup: install
+    @echo "✅ Dependencies installed"
+    @echo ""
+    @echo "Next steps:"
+    @echo "1. Set up WireGuard: just setup-wireguard"
+    @echo "2. Configure .env with Kalshi credentials"
+    @echo "3. Run migrations: just migrate"
+    @echo "4. Sync data: just sync-all"
+    @echo "5. Start dev server: just dev"
+
+# Validate environment configuration
+validate-env:
+    @echo "🔍 Validating environment..."
+    @test -f .env || (echo "❌ .env file not found" && exit 1)
+    @grep -q "KALSHI_API_KEY" .env || (echo "⚠️  KALSHI_API_KEY not set" && exit 1)
+    @grep -q "DATABASE_URL" .env || (echo "⚠️  DATABASE_URL not set" && exit 1)
+    @echo "✅ Environment validation passed"
