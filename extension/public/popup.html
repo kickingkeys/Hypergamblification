@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hypergamblification</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+    }
+    h1 {
+      font-size: 18px;
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      background: #f0f0f0;
+    }
+    .status.active {
+      background: #d4edda;
+      color: #155724;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎰 Hypergamblification</h1>
+
+  <div class="status" id="status">
+    <strong>Status:</strong> <span id="statusText">Loading...</span>
+  </div>
+
+  <div style="margin-bottom: 15px;">
+    <label for="apiKey" style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600;">OpenAI API Key:</label>
+    <input type="password" id="apiKey" placeholder="sk-..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 13px;">
+    <button id="saveKeyBtn" style="margin-top: 5px; background: #28a745;">Save API Key</button>
+    <div id="keyStatus" style="margin-top: 5px; font-size: 12px; color: #666;"></div>
+  </div>
+
+  <button id="triggerBtn">Test Full Pipeline (Cmd+Shift+K)</button>
+
+  <div class="info">
+    <p><strong>A dystopian art project</strong></p>
+    <p>Get your API key at: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></p>
+    <p style="margin-top: 10px;"><strong>Test:</strong> Hover over text and press Cmd+Shift+K</p>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

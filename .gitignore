@@ -4,6 +4,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+package-lock.json
+yarn.lock
 
 # Environment variables
 .env
@@ -30,9 +32,12 @@ Thumbs.db
 logs/
 *.log
 
-# Private keys
+# API Keys and credentials (NEVER COMMIT!)
 *.pem
 *.key
+*-credentials.json
+credentials/
+secrets/
 
 # Testing
 coverage/
@@ -41,3 +46,8 @@ coverage/
 # Temporary files
 tmp/
 temp/
+
+# Misc
+*.tgz
+.npm
+.eslintcache
