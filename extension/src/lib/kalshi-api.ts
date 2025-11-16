@@ -13,11 +13,13 @@ export interface KalshiMarket {
   volume: number;
   close_time: string;
   event_ticker: string;
+  url: string; // Direct URL to market page (added by Sean)
   series?: {
     ticker: string;
     title: string;
     category: string;
     tags: string[];
+    url?: string;
   };
 }
 
@@ -148,9 +150,10 @@ export async function findBestMarket(keywords: string[]): Promise<KalshiMarket |
 
 /**
  * Get the URL for a market on Kalshi
+ * Now using the url field directly from Sean's API
  */
-export function getMarketUrl(ticker: string): string {
-  return `${KALSHI_MARKET_BASE}/${ticker}`;
+export function getMarketUrl(market: KalshiMarket): string {
+  return market.url;
 }
 
 /**

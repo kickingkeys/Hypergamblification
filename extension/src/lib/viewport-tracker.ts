@@ -256,7 +256,7 @@ class ViewportTracker {
     overlay.style.cursor = 'pointer';
     overlay.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.open(getMarketUrl(market.ticker), '_blank');
+      window.open(getMarketUrl(market), '_blank');
     });
 
     return overlay;
