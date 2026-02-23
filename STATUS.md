@@ -1,10 +1,10 @@
 # Project Status
 
-**Last Updated:** Nov 15, 2024
+**Last Updated:** Dec 2, 2024
 
 ## Current State
 
-The Hypergamblification Chrome extension is **functionally complete** with the following features working:
+The Hypergamblification Chrome extension is **functionally complete** with an overlay redesign in progress.
 
 ### ✅ Completed Features
 1. **Viewport Tracking** - IntersectionObserver detects images in viewport
@@ -15,6 +15,26 @@ The Hypergamblification Chrome extension is **functionally complete** with the f
 6. **Market Cards** - Beautiful overlay cards with market data
 7. **Clickable Links** - Opens correct Kalshi market pages (fixed with Sean's `url` field)
 8. **Staleness Checks** - Skips images user scrolled past
+9. **Size-Responsive Overlays** - ✨ NEW: Cards adapt to image size (small/medium/large/xlarge)
+
+### 🚧 In Progress: Overlay Redesign
+
+See `OVERLAY_REDESIGN.md` for the full plan. Current status:
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| Phase 1 | Size-Responsive System | ✅ DONE |
+| Phase 2 | Progressive Disclosure | 🔜 Next |
+| Phase 3 | Smart Positioning | Pending |
+| Phase 4 | Dystopian Aesthetic | Pending |
+| Phase 5 | Polish & Edge Cases | Pending |
+
+**Phase 1 Implementation (Dec 2, 2024):**
+- Added `classifyImageSize()` function with 4 tiers
+- Created 4 overlay variants: `createCompactBadge()`, `createMiniCard()`, `createStandardCard()`, `createProminentCard()`
+- Cards now constrain width relative to image size
+- Small images show compact badge that expands on hover
+- XLarge images show prominent card with "PREDICTION MARKET" header badge
 
 ### 🔧 How to Build & Run
 
@@ -87,7 +107,7 @@ hypergamblification-repo/
 - Priority queue management (Euclidean distance from viewport center)
 - Rate limiting (maxConcurrent = 8)
 - Image context extraction (alt, caption, headline, nearby text)
-- Market card rendering
+- **Size-responsive market card rendering** (4 variants based on image size)
 - Staleness checks
 
 **Key Methods:**
@@ -96,7 +116,12 @@ hypergamblification-repo/
 - `calculatePriority()` - Euclidean distance from viewport center
 - `processQueue()` - Async queue processor with rate limiting
 - `processImage()` - Main processing logic per image
-- `createMarketCard()` - Renders overlay card
+- `createMarketCard()` - Dispatches to size-appropriate variant
+- `createCompactBadge()` - Small images (< 180px)
+- `createMiniCard()` - Medium images (180-300px)
+- `createStandardCard()` - Large images (300-450px)
+- `createProminentCard()` - XLarge images (450px+)
+- `classifyImageSize()` - Determines image size tier
 
 ### `extension/src/lib/llm.ts`
 **Keyword extraction via GPT-4o-mini vision.**

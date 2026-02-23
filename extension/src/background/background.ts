@@ -95,6 +95,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Keep channel open for async response
   }
 
+  // FAST PATH: Direct keyword → market search (skips LLM entirely)
+  if (message.type === 'SEARCH_MARKETS_DIRECT') {
+    console.log('[HYPERGAMBLIFICATION-BG] ⚡ Fast path: direct market search for keywords:', message.keywords);
+
+    findBestMarket(message.keywords)
+      .then(market => {
+        if (market) {
+          console.log('[HYPERGAMBLIFICATION-BG] ⚡ Fast match:', market.title);
+          sendResponse({ success: true, market });
+        } else {
+          console.log('[HYPERGAMBLIFICATION-BG] ⚡ No fast match found');
+          sendResponse({ success: true, market: null });
+        }
+      })
+      .catch(error => {
+        console.error('[HYPERGAMBLIFICATION-BG] ❌ Fast search failed:', error);
+        sendResponse({ success: false, error: error instanceof Error ? error.message : 'Fast search failed' });
+      });
+
+    return true;
+  }
+
   // Handle multi-modal keyword extraction (image + text context) + market search
   if (message.type === 'EXTRACT_KEYWORDS_WITH_CONTEXT') {
     console.log('[HYPERGAMBLIFICATION-BG] 🎯 Multi-modal keyword extraction request received');

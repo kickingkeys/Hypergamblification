@@ -63,17 +63,19 @@ export async function extractKeywordsFromImageWithContext(
 
     const contextString = contextParts.join('\n');
 
-    const prompt = `Analyze this image with its surrounding context to extract prediction market keywords.
+    const prompt = `You are helping search a prediction market database (Kalshi). Given the image and context, generate SHORT search queries that would match real betting markets.
 
 CONTEXT:
 ${contextString}
 
-IMAGE: See below
+RULES:
+- Each keyword must be 1-3 words MAX (e.g. "Trump", "government shutdown", "recession")
+- Think about what people BET on: elections, wars, economic indicators, weather events, sports outcomes, policy decisions
+- Use the BROADEST relevant topic (e.g. "tariffs" not "semiconductor tariff policy")
+- Include the most prominent person/entity name if relevant (e.g. "Trump", "Fed", "Tesla")
+- Generate 4-6 keywords, ordered from most to least relevant
 
-Extract 3-5 specific keywords that could match prediction markets (politics, sports, economics, events, etc.).
-Focus on concrete, searchable terms.
-
-Return ONLY a JSON array. Example: ["Biden election", "climate summit", "tech regulation"]`;
+Return ONLY a JSON array. Example: ["government shutdown", "Trump", "tariffs", "recession", "immigration"]`;
 
     return await callVisionAPI(apiKey, imageDataUrl, prompt);
   } catch (error) {
@@ -101,7 +103,7 @@ async function callVisionAPI(
       messages: [
         {
           role: 'system',
-          content: 'You are a keyword extraction system for prediction markets. Return only JSON arrays of keywords.'
+          content: 'You generate short search queries for prediction market databases. Return only JSON arrays of 1-3 word search terms. Never use phrases longer than 3 words.'
         },
         {
           role: 'user',

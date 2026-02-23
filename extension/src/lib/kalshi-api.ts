@@ -94,11 +94,11 @@ export async function searchMarkets(
 export async function findBestMarket(keywords: string[]): Promise<KalshiMarket | null> {
   console.log(`[KALSHI-API] 🎯 Finding best market for keywords:`, keywords);
 
-  // Search top 3 keywords (balance relevance vs API calls)
-  const topKeywords = keywords.slice(0, 3);
+  // Search top 5 keywords (balance relevance vs API calls)
+  const topKeywords = keywords.slice(0, 5);
 
-  // Search all keywords in parallel
-  const searchPromises = topKeywords.map(keyword => searchMarkets(keyword, { limit: 3 }));
+  // Search all keywords in parallel with higher limit
+  const searchPromises = topKeywords.map(keyword => searchMarkets(keyword, { limit: 5 }));
   const results = await Promise.all(searchPromises);
 
   // Flatten all markets into one array

@@ -105,6 +105,44 @@ async function imageToDataURL(img: HTMLImageElement): Promise<string> {
   });
 }
 
+/**
+ * Show a non-blocking toast notification instead of alert()
+ */
+function showToast(message: string, color: string = '#00e676') {
+  const existing = document.getElementById('hg-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'hg-toast';
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed; top: 20px; right: 20px; z-index: 9999999;
+    padding: 12px 20px; border-radius: 6px;
+    background: rgba(0,0,0,0.9); color: ${color};
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px; font-weight: 700;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    animation: hgToastIn 0.3s ease forwards;
+    pointer-events: none;
+  `;
+
+  if (!document.getElementById('hg-toast-styles')) {
+    const s = document.createElement('style');
+    s.id = 'hg-toast-styles';
+    s.textContent = `
+      @keyframes hgToastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes hgToastOut { from { opacity: 1; } to { opacity: 0; } }
+    `;
+    document.head.appendChild(s);
+  }
+
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'hgToastOut 0.3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
+
 console.log('[HYPERGAMBLIFICATION] 🚀 Content script loaded');
 
 // Start mouse tracking immediately
@@ -505,20 +543,16 @@ document.addEventListener('keydown', async (e) => {
 
   // NEW: Cmd+Shift+A - Toggle AUTO viewport tracking
   if (modifierKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+    e.preventDefault();
     console.log('[VIEWPORT] 🎯 Cmd+Shift+A pressed - toggling auto-tracking...');
 
     if (viewportTracker.isActive()) {
-      // Disable auto-tracking
       viewportTracker.stop();
-      alert(`🛑 Auto-tracking DISABLED\n\nKeyword overlays stopped.\nExisting overlays cleared.`);
+      showToast('Hypergamblification OFF', '#ff5252');
     } else {
-      // Enable auto-tracking
       viewportTracker.start();
       const stats = viewportTracker.getStats();
-      alert(`🚀 Auto-tracking ENABLED!\n\n` +
-        `Tracking ${stats.total} images.\n\n` +
-        `Keywords will appear automatically as you scroll!\n\n` +
-        `Press Cmd+Shift+A again to disable.`);
+      showToast(`Tracking ${stats.total} images...`, '#00e676');
     }
   }
 });
